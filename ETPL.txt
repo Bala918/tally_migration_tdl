@@ -1,0 +1,34 @@
+;;Shivgoraksh
+
+
+[#System: Formula]
+	
+;; Purchase Invoice
+
+	PISupplier_Name : if $$IsEmpty:$supplier_name_in_tally or $supplier_name_in_tally ="null" then $supplier_name else $supplier_name_in_tally
+
+
+	PIPurchaseLEd : if $tax_category = "In-State" then "Purchase Taxable GST" +
+							else if $tax_category = "Out-State" then "Interstate Purchase Taxable (GST)" +
+							else if $tax_category = "Without GST" then "Purchase Return Without GST" +
+							else "GST Purchase"
+
+	PIAccountHead : if $account_head contains "CGST" then "Input Tax CGST" else +
+					if $account_head contains "SGST" then "Input Tax SGST" else +
+					If $account_head contains "IGST" then "Input Tax IGST" else $$Trim_abbr:$account_head
+
+
+;; Sales Invoice 
+
+	PICustomer_Name : if $$IsEmpty:$supplier_name_in_tally or $supplier_name_in_tally ="null" then $customer_name else $supplier_name_in_tally
+
+
+	SIAccountHead : if $account_head contains "CGST" then "Output Tax CGST" else +
+					if $account_head contains "SGST" then "Output Tax SGST" else +
+					If $account_head contains "IGST" then "Output Tax IGST" else $$Trim_abbr:$account_head
+
+	SISalesLed	: if $tax_category = "In-State" then "Sales Taxable GST" +
+							else if $tax_category = "Out-State" then "Interstate Sales Taxable (GST)" +
+							else if $tax_category = "Without GST" then "Sales Return Without GST" +
+							else "GST Purchase"
+							

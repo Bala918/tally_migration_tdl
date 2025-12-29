@@ -1,0 +1,116 @@
+;; Shivgoraksh
+
+[Collection: SEND_AccountGroup]
+		
+	Export Header	: "Accept: application/json"
+	Export Header	: "Accept-Charset: utf-8"
+	Export Header	: "Authorization: " + "token " + @@AuthToken
+
+	Data Source: HTTP JSON: @@ERPNextHost + '/api/method/express_tally.receive_tally.account_group'
+
+	RemoteRequest: SEND_AccountGroup : UTF8
+	JSON Object Path: "message:1"
+	
+	[Function: SEND_AccountGroup_Start]
+		
+		10 : Start Timer: SEND_AccountGroup_Timer : 1
+		
+	[System: Events]
+		
+		SEND_AccountGroup_Timer : Timer: True: Call: SEND_AccountGroup
+
+[Function: SEND_AccountGroup]
+
+	Variable : vName  : String
+	Variable : vMessage : String
+	Variable : vStatus : String
+	Variable : vCounter_send : Number: 1
+
+	06 : Do If: ($$NumItems:SEND_AccountGroup_Tally = 0) :  Stop Timer: SEND_AccountGroup_Timer
+	07 : Do If: ($$NumItems:SEND_AccountGroup_Tally = 0) :  Return
+
+	08 : Stop Timer: SEND_AccountGroup_Timer
+	09 : Start Progress: 1 : "Sending Account Groups" : ""
+
+	10 : Walk Collection: SEND_AccountGroup
+	12 : Set: vStatus : $Status
+	21 :	Start Batch Post
+	25 : 		Walk Collection: data
+	26 : 		Log: $name
+	28 : 		Set: vName : $name
+	29 : 		Set: vMessage : $message
+	30 : 			Modify Object: (Group, ##vName).WebStatus[1].WebStatus : @@ERPNextResetFlag
+	32 :			Modify Object: (Group, ##vName).WebStatus_message[1].WebStatus_message : ##vMessage
+	40 :		End Walk
+	45 : 	End Batch Post
+	60 : End Walk
+	
+	65 : Do If: ($$NumItems:SEND_AccountGroup_Tally > 0 and Not $$IsEmpty:##vStatus) :  Start Timer: SEND_AccountGroup_Timer : 1
+
+[Report : SEND_AccountGroup]
+	
+	Form: SEND_AccountGroup
+	
+	[Form: SEND_AccountGroup]
+		
+		Part: SEND_AccountGroup
+		Delete: XMLTag
+
+	[Part: SEND_AccountGroup]
+		
+		Line: SEND_AccountGroup
+		Repeat: SEND_AccountGroup : SEND_AccountGroup_Tally
+		Scroll: Vertical
+		
+		[Line: SEND_AccountGroup]
+			
+			Field: SEND_AccountGroup_name, SEND_AccountGroup_IsGroup, SEND_AccountGroup_doctype
+			Field: SEND_AccountGroup_parent, SEND_AccountGroup_company, SEND_AccountGroup_abbr
+			JSONTag: "data"
+			Empty: $$Line > @@RecordsLimit
+			
+			[Field: SEND_AccountGroup_name]
+				
+				Set as: $Name
+				JSONTag: "account_name"
+				
+			[Field: SEND_AccountGroup_IsGroup]
+				
+				Set as: 1
+				JSONTag: "is_group"
+				Type: Number
+				
+			[Field: SEND_AccountGroup_doctype]
+				
+				Set as: "Account"
+				JSONTag: "doctype"
+
+			[Field: SEND_AccountGroup_parent]
+				
+				Set as: $Parent + " - " + @@EnableERPNextCmpAbbr
+				JSONTag: "parent_account"
+
+			[Field: SEND_AccountGroup_company]
+				
+				Set as: @@ERPNextBranch
+				JSONTag: "company"
+				
+			[Field: SEND_AccountGroup_abbr]
+				
+				Set as: @@EnableERPNextCmpAbbr
+				JSONTag: "abbr"
+
+
+[Collection: SEND_AccountGroup_Tally]
+	
+	Type: Group
+	Belongs To: Yes
+	Sort: @@Default : $depth
+	Filter: WebStatus
+	Filter: NonDebtorGroups
+	Filter: NonCreditorGroups
+	
+	[System: Formula]
+		
+		NonDebtorGroups: Not $$IsLedOfGrp:$Name:$$GroupSundryDebtors
+		NonCreditorGroups: Not $$IsLedOfGrp:$Name:$$GroupSundryCreditors
