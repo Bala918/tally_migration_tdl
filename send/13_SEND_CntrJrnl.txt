@@ -152,6 +152,11 @@
 						if $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors then "Creditors" +  " - " + @@EnableERPNextCmpAbbr +
 						else $LedgerName +  " - " + @@EnableERPNextCmpAbbr
 		
+			[Field: CNT_party]
+
+				JSONTag: "party"
+				Set as : If $$IsLedOfGrp:$LedgerName:$$GroupSundryDebtors then $LedgerName else +
+						 if $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors then $LedgerName else ""
 
 			[Field: CNT_account_currency]
 
