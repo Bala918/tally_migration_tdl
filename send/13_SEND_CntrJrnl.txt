@@ -151,12 +151,6 @@
 				Set as: if $$IsLedOfGrp:$LedgerName:$$GroupSundryDebtors then "Debtors" +  " - " + @@EnableERPNextCmpAbbr else +
 						if $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors then "Creditors" +  " - " + @@EnableERPNextCmpAbbr +
 						else $LedgerName +  " - " + @@EnableERPNextCmpAbbr
-		
-			[Field: CNT_party]
-
-				JSONTag: "party"
-				Set as : If $$IsLedOfGrp:$LedgerName:$$GroupSundryDebtors then $LedgerName else +
-						 if $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors then $LedgerName else ""
 
 			[Field: CNT_account_currency]
 
@@ -210,8 +204,8 @@
 			[Field: CNT_party]
 
 				JSONTag: "party"
-				Set as : If ($$IsLedOfGrp:$LedgerName:$$GroupSundryDebtors or $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors) then $LedgerCode:Ledger:$LedgerName else ""
-
+				Set as : If $$IsLedOfGrp:$LedgerName:$$GroupSundryDebtors then $LedgerName else +
+						if $$IsLedOfGrp:$LedgerName:$$GroupSundryCreditors then $LedgerName else ""
 
 [Collection: SEND_Contra_Tally]
 
@@ -233,8 +227,7 @@
 [Collection: SEND_Journal_Tally]
 
 	Type		: Vouchers : VoucherType
-	Child Of	: $$VchTypeJournal
-	Belongs To	: Yes
+	Filter		: IsJournalFamily    ← Check if it's Journal or child of Journal
 	Filter 		: WebStatus
 	Fetch: VoucherTypeName, PartyLedgerNAme ,Date, Narration, Amount, WebStatus_DocName
 	Fetch: LedgerEntries.LedgerName, LedgerEntries.Amount
