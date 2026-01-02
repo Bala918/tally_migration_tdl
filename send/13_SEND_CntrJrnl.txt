@@ -227,7 +227,8 @@
 [Collection: SEND_Journal_Tally]
 
 	Type		: Vouchers : VoucherType
-	Filter		: IsJournalFamily    ← Check if it's Journal or child of Journal
+	Child Of	: $$VchTypeJournal
+	Belongs To	: Yes
 	Filter 		: WebStatus
 	Fetch: VoucherTypeName, PartyLedgerNAme ,Date, Narration, Amount, WebStatus_DocName
 	Fetch: LedgerEntries.LedgerName, LedgerEntries.Amount
